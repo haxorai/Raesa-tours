@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { FaMapMarkerAlt, FaStar, FaCalendar } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaMapMarkerAlt, FaStar, FaCalendar, FaUsers } from 'react-icons/fa';
 import dal from '../assets/images/dal.jpeg';
 import doodhpathri from '../assets/images/doodhpathri.jpeg';
 import gulmarg from '../assets/images/gulmarg.jpeg';
@@ -10,6 +10,12 @@ import yusmarg from '../assets/images/yusmarg.jpeg';
 import kashmir from '../assets/images/kashmir.jpeg';
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  const handleDestinationClick = (destination) => {
+    navigate('/registration', { state: { selectedDestination: destination } });
+  };
+
   const destinations = [
     {
       title: 'Dal Lake',
@@ -127,6 +133,7 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                onClick={() => handleDestinationClick(destination.title)}
                 className="card group cursor-pointer"
               >
                 <div className="relative h-64 mb-6 overflow-hidden rounded-lg">

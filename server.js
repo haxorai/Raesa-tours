@@ -1,12 +1,24 @@
+// Load environment variables first
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const registrationRoutes = require('./routes/registrations');
 const authRoutes = require('./routes/auth');
+const contactRoutes = require('./routes/contact');
 
-// Load environment variables
-dotenv.config();
+// Validate required environment variables
+const requiredEnvVars = [
+  'MONGODB_URI',
+  'JWT_SECRET'
+];
+
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars);
+  process.exit(1);
+}
 
 const app = express();
 
@@ -17,6 +29,7 @@ app.use(express.json());
 // Routes
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -27,12 +40,6 @@ app.get('/', (req, res) => {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
-
-// JWT Secret
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET is not defined.');
-  process.exit(1);
-}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -48,4 +55,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log('Environment:', process.env.NODE_ENV);
 });

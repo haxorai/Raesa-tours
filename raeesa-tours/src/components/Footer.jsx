@@ -45,9 +45,9 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold text-white mb-4">Contact Us</h3>
             <ul className="space-y-2 text-gray-300">
-              <li>Phone: +91 123-456-7890</li>
+              <li>Phone: +91 7006276358</li>
               <li>Email: info@raesatours.com</li>
-              <li>Address: Srinagar, Kashmir</li>
+              <li>Address: Syed Mohalla, Ziyarat Batmaloo,Srinagar, Kashmir</li>
             </ul>
           </div>
 

@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaUsers, FaMapMarkerAlt } from 'react-icons/fa';
 
 const Registration = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    destination: '',
+    destination: location.state?.selectedDestination || '',
     departureDate: '',
     returnDate: '',
     adults: '1',
@@ -29,6 +33,24 @@ const Registration = () => {
     termsAccepted: false,
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    destination: '',
+    departureDate: '',
+    returnDate: '',
+    'emergencyContact.name': '',
+    'emergencyContact.phone': '',
+    'emergencyContact.relation': '',
+    streetAddress: '',
+    city: '',
+    stateProvince: '',
+    postalCode: '',
+    country: '',
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
@@ -43,20 +65,172 @@ const Registration = () => {
     'Custom Package',
   ];
 
+  const formatDateInput = (value) => {
+    // Remove any non-digit characters
+    const cleanValue = value.replace(/\D/g, '');
+    
+    // Format the date with slashes
+    if (cleanValue.length <= 2) {
+      return cleanValue;
+    } else if (cleanValue.length <= 4) {
+      return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2)}`;
+    } else {
+      return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2, 4)}/${cleanValue.slice(4, 8)}`;
+    }
+  };
+
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Format the date value
+    const formattedValue = formatDateInput(value);
+    
+    // Update the form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: formattedValue
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    // Clear validation error for the field being edited
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: '' // Clear error for the current field
+    }));
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData((prev) => ({
         ...prev,
         [parent]: { ...prev[parent], [child]: value },
       }));
+      // Clear validation error for nested fields (emergency contact)
+      setValidationErrors(prev => ({
+        ...prev,
+        [`${parent}.${child}`]: ''
+      }));
+    } else if (name === 'departureDate' || name === 'returnDate') {
+      handleDateChange(e);
     } else {
       setFormData((prev) => ({
         ...prev,
         [name]: type === 'checkbox' ? checked : value,
       }));
     }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+
+    // First Name validation
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+      isValid = false;
+    } else if (formData.firstName.length < 2) {
+      errors.firstName = 'First name must be at least 2 characters';
+      isValid = false;
+    }
+
+    // Last Name validation
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+      isValid = false;
+    } else if (formData.lastName.length < 2) {
+      errors.lastName = 'Last name must be at least 2 characters';
+      isValid = false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Phone validation
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required';
+      isValid = false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      errors.phone = 'Please enter a valid phone number';
+      isValid = false;
+    }
+
+    // Destination validation
+    if (!formData.destination) {
+      errors.destination = 'Please select a destination';
+      isValid = false;
+    }
+
+    // Date validations
+    if (!formData.departureDate) {
+      errors.departureDate = 'Departure date is required';
+      isValid = false;
+    }
+
+    if (!formData.returnDate) {
+      errors.returnDate = 'Return date is required';
+      isValid = false;
+    } else if (new Date(formData.returnDate) <= new Date(formData.departureDate)) {
+      errors.returnDate = 'Return date must be after departure date';
+      isValid = false;
+    }
+
+    // Emergency Contact validations
+    if (!formData.emergencyContact.name.trim()) {
+      errors['emergencyContact.name'] = 'Emergency contact name is required';
+      isValid = false;
+    }
+
+    if (!formData.emergencyContact.phone.trim()) {
+      errors['emergencyContact.phone'] = 'Emergency contact phone is required';
+      isValid = false;
+    } else if (!phoneRegex.test(formData.emergencyContact.phone)) {
+      errors['emergencyContact.phone'] = 'Please enter a valid phone number';
+      isValid = false;
+    }
+
+    if (!formData.emergencyContact.relation.trim()) {
+      errors['emergencyContact.relation'] = 'Relation is required';
+      isValid = false;
+    }
+
+    // Address validations
+    if (!formData.streetAddress.trim()) {
+      errors.streetAddress = 'Street address is required';
+      isValid = false;
+    }
+
+    if (!formData.city.trim()) {
+      errors.city = 'City is required';
+      isValid = false;
+    }
+
+    if (!formData.stateProvince.trim()) {
+      errors.stateProvince = 'State/Province is required';
+      isValid = false;
+    }
+
+    if (!formData.postalCode.trim()) {
+      errors.postalCode = 'Postal code is required';
+      isValid = false;
+    }
+
+    if (!formData.country.trim()) {
+      errors.country = 'Country is required';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
@@ -67,6 +241,11 @@ const Registration = () => {
     setSubmitSuccess('');
     
     // Validate form
+    if (!validateForm()) {
+      setSubmitError('Please correct the errors in the form');
+      return;
+    }
+
     if (!formData.termsAccepted) {
       setSubmitError('Please accept the terms and conditions');
       return;
@@ -127,6 +306,16 @@ const Registration = () => {
     }
   };
 
+  useEffect(() => {
+    // Scroll to destination field if it was pre-selected
+    if (location.state?.selectedDestination) {
+      const destinationField = document.getElementById('destination');
+      if (destinationField) {
+        destinationField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [location.state?.selectedDestination]);
+
   return (
     <div className="min-h-screen pt-20 pb-20 bg-primary">
       <div className="container-custom">
@@ -151,17 +340,6 @@ const Registration = () => {
             </motion.div>
           )}
 
-          {/* Error Message */}
-          {submitError && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-center"
-            >
-              {submitError}
-            </motion.div>
-          )}
-
           <p className="text-gray-400 text-center mb-12">
             Fill out the form below to start your journey through paradise.
             Our team will contact you to confirm your booking details.
@@ -177,56 +355,68 @@ const Registration = () => {
                   <input
                     type="text"
                     name="firstName"
-                    required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.firstName ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your first name"
                   />
+                  {validationErrors.firstName && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.firstName}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Last Name*</label>
                   <input
                     type="text"
                     name="lastName"
-                    required
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.lastName ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your last name"
                   />
+                  {validationErrors.lastName && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.lastName}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Email*</label>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
-                    required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.email ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your email"
                   />
+                  {validationErrors.email && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone*</label>
                   <input
                     type="tel"
                     name="phone"
-                    required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.phone ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your phone number"
                   />
+                  {validationErrors.phone && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.phone}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -236,55 +426,80 @@ const Registration = () => {
               <h2 className="text-2xl font-gaming mb-6">Trip Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Destination*</label>
+                  <label htmlFor="destination" className="block text-sm font-medium mb-2">Destination*</label>
                   <select
+                    id="destination"
                     name="destination"
-                    required
                     value={formData.destination}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white [&>option]:bg-secondary [&>option]:text-white"
+                    className={`w-full px-4 py-3 rounded-lg bg-secondary border ${
+                      validationErrors.destination ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white [&>option]:bg-secondary [&>option]:text-white`}
                   >
                     <option value="" disabled>Select Destination</option>
                     {destinations.map((dest) => (
                       <option key={dest} value={dest}>{dest}</option>
                     ))}
                   </select>
+                  {validationErrors.destination && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.destination}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Departure Date*</label>
-                  <input
-                    type="text"
-                    name="departureDate"
-                    required
-                    value={formData.departureDate}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
-                    placeholder="DD/MM/YYYY"
-                  />
+                  <label htmlFor="departureDate" className="block text-sm font-medium mb-2">
+                    Departure Date*
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="departureDate"
+                      name="departureDate"
+                      value={formData.departureDate}
+                      onChange={handleChange}
+                      placeholder="DD/MM/YYYY"
+                      maxLength="10"
+                      className={`w-full px-4 py-3 rounded-lg bg-secondary border ${
+                        validationErrors.departureDate ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
+                      required
+                    />
+                    <FaCalendar className="absolute right-4 top-1/2 -translate-y-1/2 text-accent" />
+                  </div>
+                  {validationErrors.departureDate && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.departureDate}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Return Date*</label>
-                  <input
-                    type="text"
-                    name="returnDate"
-                    required
-                    value={formData.returnDate}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
-                    placeholder="DD/MM/YYYY"
-                  />
+                  <label htmlFor="returnDate" className="block text-sm font-medium mb-2">
+                    Return Date*
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="returnDate"
+                      name="returnDate"
+                      value={formData.returnDate}
+                      onChange={handleChange}
+                      placeholder="DD/MM/YYYY"
+                      maxLength="10"
+                      className={`w-full px-4 py-3 rounded-lg bg-secondary border ${
+                        validationErrors.returnDate ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
+                      required
+                    />
+                    <FaCalendar className="absolute right-4 top-1/2 -translate-y-1/2 text-accent" />
+                  </div>
+                  {validationErrors.returnDate && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.returnDate}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Room Type*</label>
                   <select
                     name="roomType"
-                    required
                     value={formData.roomType}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-secondary border border-highlight/20
@@ -304,7 +519,6 @@ const Registration = () => {
                     type="number"
                     name="adults"
                     min="1"
-                    required
                     value={formData.adults}
                     onChange={handleChange}
                     className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
@@ -337,70 +551,85 @@ const Registration = () => {
                   <input
                     type="text"
                     name="streetAddress"
-                    required
                     value={formData.streetAddress}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.streetAddress ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your street address"
                   />
+                  {validationErrors.streetAddress && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.streetAddress}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">City*</label>
                   <input
                     type="text"
                     name="city"
-                    required
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.city ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your city"
                   />
+                  {validationErrors.city && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.city}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">State/Province*</label>
                   <input
                     type="text"
                     name="stateProvince"
-                    required
                     value={formData.stateProvince}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.stateProvince ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your state or province"
                   />
+                  {validationErrors.stateProvince && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.stateProvince}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Postal Code*</label>
                   <input
                     type="text"
                     name="postalCode"
-                    required
                     value={formData.postalCode}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.postalCode ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your postal code"
                   />
+                  {validationErrors.postalCode && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.postalCode}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Country*</label>
                   <input
                     type="text"
                     name="country"
-                    required
                     value={formData.country}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors.country ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Enter your country"
                   />
+                  {validationErrors.country && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.country}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -451,42 +680,51 @@ const Registration = () => {
                   <input
                     type="text"
                     name="emergencyContact.name"
-                    required
                     value={formData.emergencyContact.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors['emergencyContact.name'] ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Emergency contact name"
                   />
+                  {validationErrors['emergencyContact.name'] && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors['emergencyContact.name']}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Contact Phone*</label>
                   <input
                     type="tel"
                     name="emergencyContact.phone"
-                    required
                     value={formData.emergencyContact.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors['emergencyContact.phone'] ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Emergency contact phone"
                   />
+                  {validationErrors['emergencyContact.phone'] && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors['emergencyContact.phone']}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Relationship*</label>
                   <input
                     type="text"
                     name="emergencyContact.relation"
-                    required
                     value={formData.emergencyContact.relation}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:outline-none transition-colors duration-300
-                    text-white placeholder-gray-400"
+                    className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                      validationErrors['emergencyContact.relation'] ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
                     placeholder="Relationship with emergency contact"
                   />
+                  {validationErrors['emergencyContact.relation'] && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors['emergencyContact.relation']}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -497,26 +735,39 @@ const Registration = () => {
                 <input
                   type="checkbox"
                   name="termsAccepted"
-                  id="terms"
                   checked={formData.termsAccepted}
                   onChange={handleChange}
-                  className="w-4 h-4 text-accent border-highlight/20 focus:ring-accent"
+                  className="w-5 h-5 rounded border-highlight/20 bg-white/10
+                  focus:ring-accent focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary"
                 />
-                <label htmlFor="terms" className="text-sm text-gray-400">
-                  I agree to the terms and conditions and understand the booking policy*
+                <label className="text-sm">
+                  I agree to the terms and conditions
                 </label>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Error Message */}
+            {submitError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-center"
+              >
+                {submitError}
+              </motion.div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full btn-primary ${
-                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              className={`w-full py-4 px-6 rounded-lg bg-accent text-white font-medium
+              transition-all duration-300 ${
+                isSubmitting
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-accent/80'
               }`}
             >
-              {isSubmitting ? 'Submitting...' : 'Book Now'}
+              {isSubmitting ? 'Submitting...' : 'Submit Details'}
             </button>
           </form>
         </motion.div>

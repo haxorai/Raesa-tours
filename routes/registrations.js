@@ -120,6 +120,7 @@ router.post('/', async (req, res) => {
 
     const registration = new Registration(req.body);
     await registration.save();
+
     res.status(201).json({
       success: true,
       data: registration
@@ -152,6 +153,31 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching registration',
+      error: error.message
+    });
+  }
+});
+
+// Delete a registration
+router.delete('/:id', async (req, res) => {
+  try {
+    const registration = await Registration.findByIdAndDelete(req.params.id);
+    
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Registration deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting registration',
       error: error.message
     });
   }

@@ -6,28 +6,62 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     subject: '',
-    message: '',
+    message: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate form submission
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      setIsSubmitting(false);
-      alert('Thank you for your message! Our adventure guides will contact you soon.');
-    }, 1500);
-  };
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Reset submission states
+    setSubmitError('');
+    setSubmitSuccess('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send message');
+      }
+
+      // Clear form
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+
+      setSubmitSuccess(data.message || 'Message sent successfully!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+      setSubmitError(error.message || 'Failed to send message. Please try again.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -35,7 +69,7 @@ const Contact = () => {
       icon: <FaHeadset className="text-4xl text-accent" />,
       title: '24/7 Support',
       details: 'Always here to help',
-      subDetails: '+91 123 456 7890',
+      subDetails: '+91 7006276358',
     },
     {
       icon: <FaEnvelope className="text-4xl text-accent" />,
@@ -47,7 +81,7 @@ const Contact = () => {
       icon: <FaMapMarkerAlt className="text-4xl text-accent" />,
       title: 'Visit Us',
       details: 'Main Office',
-      subDetails: 'Boulevard Road, Srinagar, Kashmir',
+      subDetails: 'Syed Mohalla, Ziyarat Batmaloo, Srinagar, Kashmir',
     },
     {
       icon: <FaClock className="text-4xl text-accent" />,
@@ -64,7 +98,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-20 pb-20 bg-primary">
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-highlight/20 z-0" />
@@ -146,54 +180,64 @@ const Contact = () => {
               <h2 className="text-3xl font-gaming font-bold text-center mb-8">
                 Drop Your <span className="text-accent">Suggestions</span>
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-gaming mb-2">Your Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none
-                      transition-colors duration-300 text-white placeholder-gray-400"
-                      placeholder="Enter your name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-gaming mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none
-                      transition-colors duration-300 text-white placeholder-gray-400"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-gaming mb-2">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none
-                      transition-colors duration-300 text-white placeholder-gray-400"
-                      placeholder="Enter your phone number"
-                    />
+              {/* Success Message */}
+              {submitSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-center"
+                >
+                  {submitSuccess}
+                </motion.div>
+              )}
+
+              {/* Error Message */}
+              {submitError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-center"
+                >
+                  {submitError}
+                </motion.div>
+              )}
+
+              {/* Contact Form */}
+              <div className="mt-12">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Name*</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
+                        focus:border-accent focus:outline-none transition-colors duration-300
+                        text-white placeholder-gray-400"
+                        placeholder="Enter your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email*</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
+                        focus:border-accent focus:outline-none transition-colors duration-300
+                        text-white placeholder-gray-400"
+                        placeholder="Enter your email"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-gaming mb-2">Subject</label>
+                    <label className="block text-sm font-medium mb-2">Subject*</label>
                     <input
                       type="text"
                       name="subject"
@@ -201,41 +245,38 @@ const Contact = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none
-                      transition-colors duration-300 text-white placeholder-gray-400"
-                      placeholder="Enter message subject"
+                      focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400"
+                      placeholder="Enter subject"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-gaming mb-2">Your Message</label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows="4"
-                    className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                    focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none
-                    transition-colors duration-300 text-white placeholder-gray-400 resize-none"
-                    placeholder="Tell us about your dream Kashmir adventure..."
-                  ></textarea>
-                </div>
-
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 px-6 bg-accent text-white font-gaming rounded-lg
-                  hover:bg-accent/90 transform transition-all duration-300
-                  focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-50
-                  shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Sending Message...' : 'Submit Suggestions'}
-                </motion.button>
-              </form>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Message*</label>
+                    <textarea
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows="6"
+                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
+                      focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400"
+                      placeholder="Enter your message"
+                    ></textarea>
+                  </div>
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`w-full py-4 px-6 rounded-lg bg-accent hover:bg-accent/80 
+                      transition-colors duration-300 text-white font-medium text-lg
+                      ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isSubmitting ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </motion.div>
           </div>
         </div>
