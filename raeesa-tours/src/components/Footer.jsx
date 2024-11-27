@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold text-accent mb-4">Raeesa Tours</h3>
+            <h3 className="text-xl font-bold text-accent mb-4">Raeesa Tour and Travels</h3>
             <p className="text-gray-300">
               Your trusted partner for memorable Kashmir travel experiences.
             </p>
