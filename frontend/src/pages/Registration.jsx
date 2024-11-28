@@ -254,7 +254,7 @@ const Registration = () => {
     try {
       setIsSubmitting(true);
       
-      const response = await fetch('http://localhost:5000/api/registrations', {
+      const response = await fetch('/api/registrations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -473,7 +473,7 @@ const Registration = () => {
                 </div>
                 <div>
                   <label htmlFor="returnDate" className="block text-sm font-medium mb-2">
-                    Return Date*
+                    Expected Return Date*
                   </label>
                   <div className="relative">
                     <input

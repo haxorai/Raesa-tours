@@ -18,7 +18,7 @@ const Dashboard = () => {
   const fetchRegistrations = async () => {
     try {
       const token = localStorage.getItem('token');
-      let url = `http://localhost:5000/api/registrations?page=${currentPage}`;
+      let url = `/api/registrations?page=${currentPage}`;
       
       if (searchDestination) {
         url += `&destination=${encodeURIComponent(searchDestination)}`;
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/registrations/${id}`, {
+      const response = await fetch(`/api/registrations/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -84,7 +84,7 @@ const Dashboard = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/contact');
+      const response = await fetch('/api/contact');
       const data = await response.json();
 
       if (!response.ok) {
@@ -104,7 +104,7 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/contact/${id}`, {
+      const response = await fetch(`/api/contact/${id}`, {
         method: 'DELETE'
       });
 

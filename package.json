@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
-    "client": "cd raeesa-tours && npm run dev",
+    "client": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "install-client": "cd raeesa-tours && npm install",
     "install-all": "npm install && npm run install-client"
