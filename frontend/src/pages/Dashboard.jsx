@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendar, FaHome, FaInbox, FaCheck, FaTrash } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendar, FaHome, FaInbox, FaCheck, FaTrash, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext'; 
 
 const Dashboard = () => {
@@ -13,6 +13,8 @@ const Dashboard = () => {
   const [searchDestination, setSearchDestination] = useState('');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [activeTab, setActiveTab] = useState('registrations');
+  const [deleteContactModal, setDeleteContactModal] = useState({ isOpen: false, contactId: null });
+  const [deleteRegistrationModal, setDeleteRegistrationModal] = useState({ isOpen: false, registrationId: null });
   const { user } = useAuth();
 
   const fetchRegistrations = async () => {
@@ -49,10 +51,6 @@ const Dashboard = () => {
   };
 
   const deleteRegistration = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this registration? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/registrations/${id}`, {
@@ -77,9 +75,22 @@ const Dashboard = () => {
         // Otherwise, just refresh the current page
         fetchRegistrations();
       }
+
+      // Close the modal
+      setDeleteRegistrationModal({ isOpen: false, registrationId: null });
     } catch (err) {
       setError(err.message);
+      // Close the modal on error too
+      setDeleteRegistrationModal({ isOpen: false, registrationId: null });
     }
+  };
+
+  const handleDeleteRegistrationClick = (id) => {
+    setDeleteRegistrationModal({ isOpen: true, registrationId: id });
+  };
+
+  const handleDeleteContactClick = (id) => {
+    setDeleteContactModal({ isOpen: true, contactId: id });
   };
 
   const fetchContacts = async () => {
@@ -99,10 +110,6 @@ const Dashboard = () => {
   };
 
   const deleteContact = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this contact message? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/contact/${id}`, {
         method: 'DELETE'
@@ -114,8 +121,12 @@ const Dashboard = () => {
 
       // Remove the contact from the state
       setContacts(prev => prev.filter(contact => contact._id !== id));
+      // Close the modal
+      setDeleteContactModal({ isOpen: false, contactId: null });
     } catch (err) {
       setError(err.message);
+      // Close the modal on error too
+      setDeleteContactModal({ isOpen: false, contactId: null });
     }
   };
 
@@ -163,6 +174,105 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pt-20 pb-20 bg-primary">
+      {/* Delete Contact Modal */}
+      <AnimatePresence>
+        {deleteContactModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setDeleteContactModal({ isOpen: false, contactId: null })}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-primary p-6 rounded-lg shadow-xl max-w-md w-full mx-4 border border-highlight/20"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-gaming text-white">Confirm Deletion</h3>
+                <button
+                  onClick={() => setDeleteContactModal({ isOpen: false, contactId: null })}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this contact message? This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setDeleteContactModal({ isOpen: false, contactId: null })}
+                  className="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteContact(deleteContactModal.contactId)}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Registration Modal */}
+      <AnimatePresence>
+        {deleteRegistrationModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setDeleteRegistrationModal({ isOpen: false, registrationId: null })}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-primary p-6 rounded-lg shadow-xl max-w-md w-full mx-4 border border-highlight/20"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-gaming text-white">Confirm Deletion</h3>
+                <button
+                  onClick={() => setDeleteRegistrationModal({ isOpen: false, registrationId: null })}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete this registration? This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setDeleteRegistrationModal({ isOpen: false, registrationId: null })}
+                  className="px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteRegistration(deleteRegistrationModal.registrationId)}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -258,9 +368,16 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="card relative group"
                   >
+                    {/* NEW Tag */}
+                    {new Date().getTime() - new Date(registration.createdAt).getTime() < 24 * 60 * 60 * 1000 && (
+                      <div className="absolute top-4 right-16 px-2 py-1 rounded-md bg-accent text-white text-xs font-bold">
+                        NEW
+                      </div>
+                    )}
+                    
                     {/* Delete Button */}
                     <button
-                      onClick={() => deleteRegistration(registration._id)}
+                      onClick={() => handleDeleteRegistrationClick(registration._id)}
                       className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/20 text-red-400 
                         hover:bg-red-500/30 transition-colors duration-300 opacity-0 
                         group-hover:opacity-100"
@@ -395,11 +512,11 @@ const Dashboard = () => {
                 >
                   {/* Delete Button */}
                   <button
-                    onClick={() => deleteContact(contact._id)}
+                    onClick={() => handleDeleteContactClick(contact._id)}
                     className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/20 text-red-400 
                       hover:bg-red-500/30 transition-colors duration-300 opacity-0 
                       group-hover:opacity-100"
-                    title="Delete Contact Message"
+                    title="Delete Message"
                   >
                     <FaTrash />
                   </button>
