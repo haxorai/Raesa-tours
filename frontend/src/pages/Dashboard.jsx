@@ -19,7 +19,7 @@ const Dashboard = () => {
   const fetchRegistrations = async () => {
     try {
       const token = localStorage.getItem('token');
-      let url = `/api/registrations?page=${currentPage}`;
+      let url = `${import.meta.env.VITE_API_URL}/api/registrations?page=${currentPage}`;
       
       if (searchDestination) {
         url += `&destination=${encodeURIComponent(searchDestination)}`;
@@ -49,7 +49,7 @@ const Dashboard = () => {
   const deleteRegistration = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/registrations/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -91,7 +91,7 @@ const Dashboard = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('/api/contact');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/contact`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -107,7 +107,7 @@ const Dashboard = () => {
 
   const deleteContact = async (id) => {
     try {
-      const response = await fetch(`/api/contact/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/contact/${id}`, {
         method: 'DELETE'
       });
 
