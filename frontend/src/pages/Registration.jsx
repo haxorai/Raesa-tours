@@ -311,7 +311,7 @@ const Registration = () => {
     try {
       setIsSubmitting(true);
       
-      const response = await fetch('/api/registrations', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
