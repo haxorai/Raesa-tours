@@ -264,40 +264,42 @@ const Contact = () => {
               {/* Contact Form */}
               <div className="mt-12">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
-                        validationErrors.name ? 'border-red-500' : 'border-highlight/20'
-                      } focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400`}
-                      placeholder="Enter your name"
-                    />
-                    {validationErrors.name && (
-                      <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
-                    )}
-                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-2">Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                          validationErrors.name ? 'border-red-500' : 'border-highlight/20'
+                        } focus:border-accent focus:outline-none transition-colors duration-300
+                        text-white placeholder-gray-400`}
+                        placeholder="Enter your name"
+                      />
+                      {validationErrors.name && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+                      )}
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
-                        validationErrors.email ? 'border-red-500' : 'border-highlight/20'
-                      } focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400`}
-                      placeholder="Enter your email"
-                    />
-                    {validationErrors.email && (
-                      <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
-                    )}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                          validationErrors.email ? 'border-red-500' : 'border-highlight/20'
+                        } focus:border-accent focus:outline-none transition-colors duration-300
+                        text-white placeholder-gray-400`}
+                        placeholder="Enter your email"
+                      />
+                      {validationErrors.email && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div>
