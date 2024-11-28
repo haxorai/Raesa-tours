@@ -69,7 +69,7 @@ const Registration = () => {
     // Remove any non-digit characters
     const cleanValue = value.replace(/\D/g, '');
     
-    // Format the date with slashes
+    // Format the date with slashes (DD/MM/YYYY)
     if (cleanValue.length <= 2) {
       return cleanValue;
     } else if (cleanValue.length <= 4) {
@@ -77,6 +77,45 @@ const Registration = () => {
     } else {
       return `${cleanValue.slice(0, 2)}/${cleanValue.slice(2, 4)}/${cleanValue.slice(4, 8)}`;
     }
+  };
+
+  const validateDate = (date, type) => {
+    // Check if date is empty
+    if (!date) {
+      return `${type} date is required`;
+    }
+
+    // Check date format (DD/MM/YYYY)
+    const dateFormatRegex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+    if (!dateFormatRegex.test(date)) {
+      return 'Please enter date in DD/MM/YYYY format';
+    }
+
+    const [day, month, year] = date.split('/').map(Number);
+    const inputDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if date is valid
+    if (inputDate.getMonth() !== month - 1 || inputDate.getDate() !== day || inputDate.getFullYear() !== year) {
+      return 'Please enter a valid date';
+    }
+
+    // For departure date, check if it's in the future
+    if (type === 'Departure' && inputDate < today) {
+      return 'Departure date must be in the future';
+    }
+
+    // For return date, check if it's after departure date
+    if (type === 'Return' && formData.departureDate) {
+      const [dDay, dMonth, dYear] = formData.departureDate.split('/').map(Number);
+      const departureDate = new Date(dYear, dMonth - 1, dDay);
+      if (inputDate <= departureDate) {
+        return 'Return date must be after departure date';
+      }
+    }
+
+    return '';
   };
 
   const handleDateChange = (e) => {
@@ -90,6 +129,24 @@ const Registration = () => {
       ...prev,
       [name]: formattedValue
     }));
+
+    // Validate the date
+    const dateType = name === 'departureDate' ? 'Departure' : 'Return';
+    const error = validateDate(formattedValue, dateType);
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+
+    // If return date exists and departure date changes, validate return date again
+    if (name === 'departureDate' && formData.returnDate) {
+      const returnError = validateDate(formData.returnDate, 'Return');
+      setValidationErrors(prev => ({
+        ...prev,
+        returnDate: returnError
+      }));
+    }
   };
 
   const handleChange = (e) => {
@@ -446,54 +503,44 @@ const Registration = () => {
                     <p className="mt-1 text-sm text-red-500">{validationErrors.destination}</p>
                   )}
                 </div>
-                <div>
-                  <label htmlFor="departureDate" className="block text-sm font-medium mb-2">
-                    Departure Date*
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">
+                    <FaCalendar className="inline-block mr-2" />
+                    Departure Date
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="departureDate"
-                      name="departureDate"
-                      value={formData.departureDate}
-                      onChange={handleChange}
-                      placeholder="DD/MM/YYYY"
-                      maxLength="10"
-                      className={`w-full px-4 py-3 rounded-lg bg-secondary border ${
-                        validationErrors.departureDate ? 'border-red-500' : 'border-highlight/20'
-                      } focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400`}
-                      required
-                    />
-                    <FaCalendar className="absolute right-4 top-1/2 -translate-y-1/2 text-accent" />
-                  </div>
+                  <input
+                    type="text"
+                    name="departureDate"
+                    value={formData.departureDate}
+                    onChange={handleDateChange}
+                    placeholder="DD/MM/YYYY"
+                    className={`w-full px-4 py-2 rounded-lg bg-white/10 border ${
+                      validationErrors.departureDate ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
+                  />
                   {validationErrors.departureDate && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.departureDate}</p>
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.departureDate}</p>
                   )}
                 </div>
-                <div>
-                  <label htmlFor="returnDate" className="block text-sm font-medium mb-2">
-                    Expected Return Date*
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">
+                    <FaCalendar className="inline-block mr-2" />
+                    Return Date
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="returnDate"
-                      name="returnDate"
-                      value={formData.returnDate}
-                      onChange={handleChange}
-                      placeholder="DD/MM/YYYY"
-                      maxLength="10"
-                      className={`w-full px-4 py-3 rounded-lg bg-secondary border ${
-                        validationErrors.returnDate ? 'border-red-500' : 'border-highlight/20'
-                      } focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400`}
-                      required
-                    />
-                    <FaCalendar className="absolute right-4 top-1/2 -translate-y-1/2 text-accent" />
-                  </div>
+                  <input
+                    type="text"
+                    name="returnDate"
+                    value={formData.returnDate}
+                    onChange={handleDateChange}
+                    placeholder="DD/MM/YYYY"
+                    className={`w-full px-4 py-2 rounded-lg bg-white/10 border ${
+                      validationErrors.returnDate ? 'border-red-500' : 'border-highlight/20'
+                    } focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400`}
+                  />
                   {validationErrors.returnDate && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.returnDate}</p>
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.returnDate}</p>
                   )}
                 </div>
                 <div>
