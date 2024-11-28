@@ -75,7 +75,7 @@ const Contact = () => {
       icon: <FaEnvelope className="text-4xl text-accent" />,
       title: 'Email Us',
       details: 'Quick Response Time',
-      subDetails: 'adventures@raesatours.com',
+      subDetails: 'raeesatt.help@gmail.com',
     },
     {
       icon: <FaMapMarkerAlt className="text-4xl text-accent" />,
