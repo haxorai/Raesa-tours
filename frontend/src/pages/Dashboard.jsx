@@ -11,7 +11,6 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchDestination, setSearchDestination] = useState('');
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [activeTab, setActiveTab] = useState('registrations');
   const [deleteContactModal, setDeleteContactModal] = useState({ isOpen: false, contactId: null });
   const [deleteRegistrationModal, setDeleteRegistrationModal] = useState({ isOpen: false, registrationId: null });
@@ -24,9 +23,6 @@ const Dashboard = () => {
       
       if (searchDestination) {
         url += `&destination=${encodeURIComponent(searchDestination)}`;
-      }
-      if (dateRange.startDate && dateRange.endDate) {
-        url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
       }
 
       const response = await fetch(url, {
@@ -136,13 +132,7 @@ const Dashboard = () => {
     } else {
       fetchContacts();
     }
-  }, [currentPage, searchDestination, dateRange, activeTab]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchRegistrations();
-  };
+  }, [currentPage, searchDestination, activeTab]);
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -311,52 +301,23 @@ const Dashboard = () => {
           {activeTab === 'registrations' ? (
             <>
               {/* Search Form */}
-              <div className="card mb-8">
-                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Destination</label>
-                    <input
-                      type="text"
-                      value={searchDestination}
-                      onChange={(e) => setSearchDestination(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400"
-                      placeholder="Search by destination"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Start Date</label>
-                    <input
-                      type="date"
-                      value={dateRange.startDate}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">End Date</label>
-                    <input
-                      type="date"
-                      value={dateRange.endDate}
-                      onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400"
-                    />
-                  </div>
-                  <div className="md:col-span-3 flex justify-center">
-                    <button
-                      type="submit"
-                      className="px-8 py-2 bg-accent hover:bg-accent/80 text-white rounded-lg
-                      transition-colors duration-300 font-medium"
-                    >
-                      Search
-                    </button>
-                  </div>
-                </form>
+              <div className="card mb-8 max-w-md mx-auto">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Search Registration By Destination</label>
+                  <input
+                    type="text"
+                    value={searchDestination}
+                    onChange={(e) => {
+                      setSearchDestination(e.target.value);
+                      setCurrentPage(1);
+                      fetchRegistrations();
+                    }}
+                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-highlight/20
+                    focus:border-accent focus:outline-none transition-colors duration-300
+                    text-white placeholder-gray-400"
+                    placeholder="Type destination"
+                  />
+                </div>
               </div>
 
               {/* Registrations Grid */}
