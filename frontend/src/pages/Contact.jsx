@@ -10,15 +10,66 @@ const Contact = () => {
     message: ''
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
+
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+
+    // Name validation
+    if (!formData.name.trim()) {
+      errors.name = 'Name is required';
+      isValid = false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Subject validation
+    if (!formData.subject.trim()) {
+      errors.subject = 'Subject is required';
+      isValid = false;
+    }
+
+    // Message validation
+    if (!formData.message.trim()) {
+      errors.message = 'Message is required';
+      isValid = false;
+    } else if (formData.message.trim().length < 10) {
+      errors.message = 'Message must be at least 10 characters long';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+    // Clear validation error when user starts typing
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: ''
     }));
   };
 
@@ -28,6 +79,13 @@ const Contact = () => {
     // Reset submission states
     setSubmitError('');
     setSubmitSuccess('');
+
+    // Validate form before submission
+    if (!validateForm()) {
+      setSubmitError('Please correct the errors in the form');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -206,75 +264,88 @@ const Contact = () => {
               {/* Contact Form */}
               <div className="mt-12">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Name*</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                        focus:border-accent focus:outline-none transition-colors duration-300
-                        text-white placeholder-gray-400"
-                        placeholder="Enter your name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Email*</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                        focus:border-accent focus:outline-none transition-colors duration-300
-                        text-white placeholder-gray-400"
-                        placeholder="Enter your email"
-                      />
-                    </div>
-                  </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Subject*</label>
+                    <label className="block text-sm font-medium mb-2">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                        validationErrors.name ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
+                      placeholder="Enter your name"
+                    />
+                    {validationErrors.name && (
+                      <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                        validationErrors.email ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
+                      placeholder="Enter your email"
+                    />
+                    {validationErrors.email && (
+                      <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Subject</label>
                     <input
                       type="text"
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400"
+                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                        validationErrors.subject ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
                       placeholder="Enter subject"
                     />
+                    {validationErrors.subject && (
+                      <p className="mt-1 text-sm text-red-500">{validationErrors.subject}</p>
+                    )}
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium mb-2">Message*</label>
+                    <label className="block text-sm font-medium mb-2">Message</label>
                     <textarea
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      required
-                      rows="6"
-                      className="w-full px-4 py-3 rounded-lg bg-white/10 border border-highlight/20
-                      focus:border-accent focus:outline-none transition-colors duration-300
-                      text-white placeholder-gray-400"
+                      rows="4"
+                      className={`w-full px-4 py-3 rounded-lg bg-white/10 border ${
+                        validationErrors.message ? 'border-red-500' : 'border-highlight/20'
+                      } focus:border-accent focus:outline-none transition-colors duration-300
+                      text-white placeholder-gray-400`}
                       placeholder="Enter your message"
-                    ></textarea>
+                    />
+                    {validationErrors.message && (
+                      <p className="mt-1 text-sm text-red-500">{validationErrors.message}</p>
+                    )}
                   </div>
-                  <div>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={`w-full py-4 px-6 rounded-lg bg-accent hover:bg-accent/80 
-                      transition-colors duration-300 text-white font-medium text-lg
-                      ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {isSubmitting ? 'Sending...' : 'Send Message'}
-                    </button>
-                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full py-3 rounded-lg font-medium transition-colors duration-300
+                    ${isSubmitting
+                      ? 'bg-accent/50 cursor-not-allowed'
+                      : 'bg-accent hover:bg-accent/80'}`}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                  </button>
                 </form>
               </div>
             </motion.div>
